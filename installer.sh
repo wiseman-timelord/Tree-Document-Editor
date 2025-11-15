@@ -11,4 +11,33 @@ if ! pkg-config --exists gtk+-3.0; then
 fi
 
 echo "Dependencies are satisfied."
+
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+JSON_FILE="$SCRIPT_DIR/data/tree.json"
+
+echo "Creating/Replacing default tree.json..."
+cat > "$JSON_FILE" << EOL
+[
+    {
+        "text": "Root",
+        "children": [
+            {
+                "text": "Child 1",
+                "children": [
+                    {
+                        "text": "Grandchild 1",
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "text": "Child 2",
+                "children": []
+            }
+        ]
+    }
+]
+EOL
+echo "tree.json created successfully."
+
 exit 0
