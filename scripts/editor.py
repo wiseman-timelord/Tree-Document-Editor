@@ -3,6 +3,12 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 import json
 import os
+import sys
+
+# Add the 'data' directory to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data')))
+
+from temporary import CONFIG_FILE
 from scripts.tree_utils import serialize_tree, deserialize_tree
 
 class TreeEditorWindow(Gtk.Window):
@@ -26,10 +32,8 @@ class TreeEditorWindow(Gtk.Window):
         column = Gtk.TreeViewColumn("Tree", renderer_text, text=0)
         self.treeview.append_column(column)
 
-        # Add some initial data for testing
-        parent = self.treestore.append(None, ["Root"])
-        self.treestore.append(parent, ["Child 1"])
-        self.treestore.append(parent, ["Child 2"])
+        # Load initial data
+        self.load_initial_data()
 
         # Create buttons
         self.add_button = Gtk.Button(label="Add")
@@ -62,17 +66,31 @@ class TreeEditorWindow(Gtk.Window):
 
         self.connect("destroy", Gtk.main_quit)
 
+    def load_initial_data(self):
+        """Loads the initial tree data and ensures all nodes are collapsed."""
+        self.on_load_clicked(None)  # Load the data
+        self.treeview.collapse_all()  # Collapse all nodes
+
     def on_save_clicked(self, button):
-        data = serialize_tree(self.treestore)
-        with open("data/tree.json", "w") as f:
-            json.dump(data, f, indent=4)
+        tree_data = serialize_tree(self.treestore)
+        # Preserve existing settings
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, "r") as f:
+                config_data = json.load(f)
+        else:
+            config_data = {"settings": {}} # Default if file doesn't exist
+
+        config_data["tree"] = tree_data
+
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config_data, f, indent=4)
 
     def on_load_clicked(self, button):
-        if os.path.exists("data/tree.json"):
-            with open("data/tree.json", "r") as f:
-                data = json.load(f)
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, "r") as f:
+                config_data = json.load(f)
             self.treestore.clear()
-            deserialize_tree(data, self.treestore, None)
+            deserialize_tree(config_data.get("tree", []), self.treestore, None)
 
     def on_text_edited(self, widget, path, text):
         self.treestore[path][0] = text
@@ -98,8 +116,12 @@ class TreeEditorWindow(Gtk.Window):
 
     def run(self):
         self.show_all()
+        # Collapse all nodes after showing the window
+        self.treeview.collapse_all()
         Gtk.main()
 
 if __name__ == "__main__":
+    # Ensure the script can find the 'data' module
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     editor = TreeEditorWindow()
     editor.run()
