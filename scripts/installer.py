@@ -13,11 +13,25 @@ def get_project_path(*args):
     """Constructs an absolute path from the project root."""
     return os.path.join(project_root, *args)
 
+# ------------------------------------------------------------------
+#  NEW: offline PyGObject wheel install (Windows only)
+# ------------------------------------------------------------------
+def install_pygobject_for_windows():
+    """Install PyGObject wheel into the offline Python that is running this script."""
+    python_exe = sys.executable          # the interpreter we just installed
+    wheel_path = get_project_path("data", "packages", "PyGObject-3.11-win64.whl")
+    if not os.path.isfile(wheel_path):
+        print("ERROR: PyGObject wheel not found at", wheel_path)
+        sys.exit(1)
+    print("Installing PyGObject wheel …")
+    subprocess.check_call([python_exe, "-m", "pip", "install",
+                           "--no-index", "--no-deps", wheel_path])
+
 def install_windows_deps():
     """Installs dependencies for Windows."""
     print("Running Windows installation...")
 
-    # Install GTK
+    # 1. GTK runtime
     gtk_vendor_path = get_project_path("vendor", "gtk-windows")
     if not os.path.exists(gtk_vendor_path):
         print("Installing GTK runtime...")
@@ -30,7 +44,7 @@ def install_windows_deps():
     else:
         print("GTK runtime already installed.")
 
-    # Extract NConvert
+    # 2. NConvert extract
     nconvert_zip = get_project_path("data", "packages", "NConvert-win64.zip")
     nconvert_install_dir = get_project_path("data", "installed")
     if os.path.exists(nconvert_zip):
@@ -41,6 +55,9 @@ def install_windows_deps():
         print("NConvert extracted successfully.")
     else:
         print("NConvert package not found. Skipping extraction.")
+
+    # 3. PyGObject (offline wheel)
+    install_pygobject_for_windows()
 
 def install_linux_deps():
     """Installs dependencies for Linux."""
