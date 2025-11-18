@@ -55,6 +55,16 @@ def install_linux_deps():
         print("For Fedora, run: sudo yum install -y gtk3-devel")
         print("For Arch, run: sudo pacman -S gtk3")
 
+    try:
+        subprocess.run(["which", "magick"], check=True, capture_output=True)
+        print("ImageMagick is already installed.")
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print("ImageMagick is not installed.")
+        print("Please install it using your system's package manager.")
+        print("For Debian/Ubuntu, run: sudo apt-get install -y imagemagick")
+        print("For Fedora, run: sudo yum install -y ImageMagick")
+        print("For Arch, run: sudo pacman -S imagemagick")
+
 def create_default_config():
     """Creates the default configuration.json file."""
     print("Creating default configuration.json...")
@@ -85,12 +95,18 @@ def create_default_config():
     print("configuration.json created successfully.")
 
 def main():
-    if sys.platform == "win32":
+    if len(sys.argv) < 2:
+        print("Usage: installer.py <windows|linux>")
+        sys.exit(1)
+
+    platform = sys.argv[1]
+
+    if platform == "windows":
         install_windows_deps()
-    elif sys.platform.startswith("linux"):
+    elif platform == "linux":
         install_linux_deps()
     else:
-        print(f"Unsupported platform: {sys.platform}")
+        print(f"Unsupported platform: {platform}")
         sys.exit(1)
 
     create_default_config()
