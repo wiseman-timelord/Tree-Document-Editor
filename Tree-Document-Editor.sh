@@ -1,101 +1,92 @@
-@echo off
-setlocal enabledelayedexpansion
+#!/bin/bash
 
-:: Change to the scripts directory to ensure proper path resolution
-cd /d "%~dp0"
+# Change to the script directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
 
-set "SCRIPT_DIR=%~dp0"
-:: -----------------------------------------------------------
-::  OFFLINE-PYTHON LOCATIONS (used by both INSTALL and LAUNCH)
-:: -----------------------------------------------------------
-set "PYTHON_DIR=%SCRIPT_DIR%data\installed\Python311"
-set "PYTHON_EXE=%PYTHON_DIR%\python.exe"
+# Python configuration
+PYTHON_CMD="python3"
 
-set "GTK_PATH=%SCRIPT_DIR%vendor\gtk-windows\bin"
-set "PYTHONPATH=%SCRIPT_DIR%data\packages\python-3.11-offline-site-packages;%SCRIPT_DIR%vendor\gtk-windows\lib\site-packages"
-set "GI_TYPELIB_PATH=%SCRIPT_DIR%vendor\gtk-windows\lib\girepository-1.0"
-set "PATH=%GTK_PATH%;%PYTHON_DIR%;%PATH%"
+main_menu() {
+    clear
+    echo "==============================================================================="
+    echo "   Tree-Document-Editor: Menu"
+    echo "==============================================================================="
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo "   1) Launch Tree-Document-Editor"
+    echo ""
+    echo "   2) Install Requirements"
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo "-------------------------------------------------------------------------------"
+    read -p "Selection; Menu Options = 1-2, Quit Program = Q: " choice
+    
+    case "$choice" in
+        1|[Ll]aunch)
+            launch_app
+            ;;
+        2|[Ii]nstall)
+            install_deps
+            ;;
+        [Qq]|[Qq]uit)
+            quit_app
+            exit 0
+            ;;
+        *)
+            echo "Invalid selection. Please try again."
+            read -p "Press Enter to continue..."
+            ;;
+    esac
+    
+    main_menu
+}
 
-:MAIN_MENU
-cls
-echo ===============================================================================
-echo    Tree-Document-Editor: Batch Menu
-echo ===============================================================================
-echo.
-echo.
-echo.
-echo.
-echo.
-echo.
-echo.
-echo    1) Launch Tree-Document-Editor
-echo.
-echo    2) Install Requirements
-echo.
-echo.
-echo.
-echo.
-echo.
-echo.
-echo.
-echo.
-echo -------------------------------------------------------------------------------
-set /p choice="Selection; Menu Options = 1-2, Quit Program = Q: "
+launch_app() {
+    clear
+    echo "==============================================================================="
+    echo "   Launching Tree-Document-Editor"
+    echo "==============================================================================="
+    echo ""
+    echo "Starting application..."
+    $PYTHON_CMD "$SCRIPT_DIR/scripts/editor.py"
+    echo ""
+    read -p "Press Enter to continue..."
+}
 
-if /i "%choice%"=="1" call :LAUNCH
-if /i "%choice%"=="2" call :INSTALL
-if /i "%choice%"=="Q" call :QUIT
-if /i "%choice%"=="1" goto MAIN_MENU
-if /i "%choice%"=="2" goto MAIN_MENU
-if /i "%choice%"=="Q" exit /b 0
-echo Invalid selection. Please try again.
-pause
-goto MAIN_MENU
+install_deps() {
+    clear
+    echo "==============================================================================="
+    echo "   Installing Requirements"
+    echo "==============================================================================="
+    echo ""
+    $PYTHON_CMD "$SCRIPT_DIR/scripts/installer.py" linux
+    echo ""
+    read -p "Press Enter to continue..."
+}
 
-:LAUNCH
-cls
-echo ===============================================================================
-echo    Launching Tree-Document-Editor
-echo ===============================================================================
-echo.
-echo Starting application...
-"%PYTHON_EXE%" "%SCRIPT_DIR%scripts\editor.py"
-echo.
-pause
-goto :eof
+quit_app() {
+    clear
+    echo "==============================================================================="
+    echo "   Exiting Program"
+    echo "==============================================================================="
+    echo ""
+    echo "Exiting program..."
+    echo "Thank you for using Tree-Document-Editor."
+    echo ""
+    sleep 2
+}
 
-:INSTALL
-cls
-echo ===============================================================================
-echo    Installing Requirements
-echo ===============================================================================
-echo.
-set "PYTHON_INSTALLER=%SCRIPT_DIR%data\packages\python-3.11.0-amd64.exe"
-if not exist "%PYTHON_EXE%" (
-    echo Installing Python 3.11 offline...
-    if not exist "%PYTHON_INSTALLER%" (
-        echo ERROR: Python installer not found at %PYTHON_INSTALLER%
-        echo Please place the Python installer in the specified directory.
-        exit /b 1
-    )
-    "%PYTHON_INSTALLER%" /quiet InstallAllUsers=0 TargetDir="%PYTHON_DIR%" PrependPath=0 Include_test=0
-)
-echo.
-echo Running Python installer script...
-"%PYTHON_EXE%" "%SCRIPT_DIR%scripts\installer.py" windows
-echo.
-echo Installation complete.
-pause
-goto :eof
-
-:QUIT
-cls
-echo ===============================================================================
-echo    Exiting Program
-echo ===============================================================================
-echo.
-echo Exiting program...
-echo Thank you for using Tree-Document-Editor.
-echo.
-timeout /t 2 /nobreak >nul
-goto :eof
+# Start the menu
+main_menu
